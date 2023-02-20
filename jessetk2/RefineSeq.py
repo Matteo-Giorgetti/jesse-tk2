@@ -43,7 +43,8 @@ class Refine:
         sortby = sortby.lower().replace('profit', 'total_profit').replace('udd_count', 'udd_stop_count').replace('uddcount', 'udd_stop_count')
         self.sortby = sortby
 
-        self.sort_reverse = sortby in ['lpr', 'foo_bar']
+        # Add higher is better sorting parameters to the list below to reverse sorting.
+        self.sort_reverse = sortby in ['total_profit', 'udd_count', 'ppudd']
         self.fr = ' --full-reports' if full_reports else ''
         self.jessetkdir = datadir
         self.anchor = 'DNA!'
