@@ -323,13 +323,16 @@ def backtest(start_date: str, finish_date: str, debug: bool, csv: bool, json: bo
 @click.option('--mbr', default=DEFAULT['mbr'], show_default=True, help='Maximum balance/init balance ratio limit for filtering results.')
 @click.option('--udd', default=-100.0, show_default=True, help='Minimum PNL vs capital ratio.')
 @click.option('--udd_count', default=100, show_default=True, help='Udd stop event count.')
-def optuna_pick(dd, mr, lpr, sharpe, calmar, serenity, profit, imcount, trades, mbr, udd, udd_count):
+@click.option('--score1', default="", show_default=True, help='Filter by score 1.')
+@click.option('--score2', default="", show_default=True, help='Filter by score 2.')
+@click.option('--score3', default="", show_default=True, help='Filter by score 3.')
+def optuna_pick(dd, mr, lpr, sharpe, calmar, serenity, profit, imcount, trades, mbr, udd, udd_count, score1, score2, score3):
     """Picks the best hyperparameters from the optuna database."""
     os.chdir(os.getcwd())
     validate_cwd()
 
     from jessetk2.OptunaPick import OptunaPick
-    op = OptunaPick(dd, mr, lpr, sharpe, calmar, serenity, profit, imcount, trades, mbr, udd, udd_count)
+    op = OptunaPick(dd, mr, lpr, sharpe, calmar, serenity, profit, imcount, trades, mbr, udd, udd_count, score1, score2, score3)
     op.pick()
 
 
