@@ -7,6 +7,7 @@ from jessetk2.utils import hp_to_seq
 import csv
 import jesse.helpers as jh
 from jessetk2.Vars import DEFAULT
+import re
 
 try:
     from config import config
@@ -23,7 +24,7 @@ except ImportError:
 
 
 class OptunaPick:
-    def __init__(self, dd, mr, lpr, sharpe, calmar, serenity, profit, imcount, trades, mbr, udd, udd_count):
+    def __init__(self, dd, mr, lpr, sharpe, calmar, serenity, profit, imcount, trades, mbr, udd, udd_count, score1, score2, score3):
         self.dd = dd
         self.mr = mr
         self.lpr = lpr
@@ -36,7 +37,10 @@ class OptunaPick:
         self.mbr = mbr
         self.udd = udd
         self.udd_count = udd_count
-
+        self.score1 = score1
+        self.score2 = score2
+        self.score3 = score3
+        self.parse_scores()
         try:
             self.db_host = config['databases']['optuna_db_host']
             self.db_port = config['databases']['optuna_db_port']
@@ -172,16 +176,24 @@ class OptunaPick:
 
             if obj1['imcount'] and obj1['imcount'] > self.imcount:
                 continue
-
-            if obj1['udd_stop_count'] and obj1['udd_stop_count'] > self.udd_count:
-                continue
+            
+            try:
+                if obj1['udd_stop_count'] and obj1['udd_stop_count'] > self.udd_count:
+                    continue
+            except Exception as e:
+                pass
             
             try:
                 if obj1['mbr'] and obj1['mbr'] > self.mbr:
                     continue
             except:
                 pass
-
+            
+            if self.score3:
+                if self.score3[0] == "<" and trial.values[2] >= self.score3[1]:
+                    print(f"Skipping due to score3. Filter: {self.score3}, value: {trial.values[2]}")
+                    continue
+                    
             # Statistics test are useful for some strategies!
             # mean_value = round(statistics.mean((*trial.values, trial.user_attrs['sharpe3'])), 3)
             # std_dev = round(statistics.stdev((*trial.values, trial.user_attrs['sharpe3'])), 5)
@@ -271,3 +283,35 @@ class OptunaPick:
 
         print(f"Results saved to {res_fn}")
         print(f"Candidates saved to {seq_fn}")
+
+    def parse_scores(self):
+        if self.score1:
+            score1 = re.findall(r'\d+', self.score1)[0]
+            operator1 = re.findall(r'[<>=]', self.score1)[0]
+            self.score1 = (operator1, float(score1))
+        else:
+            self.score1 = None
+        
+        if self.score2:
+            score2 = re.findall(r'\d+', self.score2)[0]
+            operator2 = re.findall(r'[<>=]', self.score2)[0]
+            self.score2 = (operator2, float(score2))
+        else:
+            self.score2 = None
+        
+        if self.score3:
+            score3 = re.findall(r'\d+', self.score3)[0]
+            operator3 = re.findall(r'[<>=]', self.score3)[0]
+            self.score3 = (operator3, float(score3))
+        else:
+            self.score3 = None
+        
+        print(f"{self.score1=}, {self.score2=}, {self.score3=}")
+
+        # # take just numbers from the string
+        # score = re.findall(r'\d+', score3)[0]
+        # print(score)
+
+        # # take greater, less, equal from the string
+        # score2 = re.findall(r'[<>=]', score3)[0]
+        # print(score2)
